@@ -44,17 +44,26 @@ hr { display: block; height: 1px; border: 0; border-top: 1px solid #555; margin:
    - html has overflow-y: scroll (always show scrollbar)
    - body has the tiled background, NO height:100%, NO overflow:hidden
    - This lets the background tile naturally and scroll with the page */
-html { overflow-y: scroll; }
+html {
+    overflow-y: scroll;
+    height: 100%;
+}
 
+/* Flex-column body: header + #wrap grow, footer always stays at the bottom.
+   The tiled bg_main texture is on the body so it covers the full viewport
+   height regardless of content length. */
 body {
     background: var(--color-bg) url('../images/bg_main.png');
     font: 13px/1.4 var(--font-base);
     color: var(--color-text);
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
-/* The original used this trick to make the wrap fill 100% height
-   without the body/html height:100% causing background-attachment issues */
-#wrap { display: table; height: 100%; width: 100%; min-height: 100%; }
+/* #wrap takes all remaining vertical space between header and footer,
+   pushing the footer to the bottom even on short pages. */
+#wrap { flex: 1; width: 100%; }
 
 h1, h2, h3, h4, h5, h6 { font-weight: bold; color: var(--color-heading); }
 h1 { font-size: 24px; }
@@ -176,35 +185,7 @@ header::after {
 /* Active nav item */
 #menu li.active > a { color: var(--color-accent); }
 
-/* ---- Dropdown ---- */
-#menu li ul {
-    margin: 0;
-    padding: 4px 0 0;
-    position: absolute;
-    top: 48px;
-    left: 0;
-    display: none;
-    z-index: 100;
-    min-width: 160px;
-}
-
-#menu li:hover > ul,
-#menu li ul:hover { display: block; }
-#menu li.open > ul { display: block; }
-
-#menu li ul li { display: block; float: none; margin: 0; }
-
-#menu li ul li a {
-    display: block;
-    padding: 6px 14px;
-    background: #2a2a2a;
-    white-space: nowrap;
-    color: #ddd;
-    font-size: 14px;
-    border-bottom: 1px solid #1a1a1a;
-}
-
-#menu li ul li a:hover { background: #3a3a3a; color: #fff; }
+/* No dropdown menus — Game navigates directly to game/index.html */
 
 /* ---- Userbox ----
    "Download" link in the top-right. Hidden on narrow screens since
@@ -251,6 +232,17 @@ aside {
 section.left.three-col { width: 300px; float: left; margin-bottom: 3em; }
 section.mid.three-col,
 section.right.three-col { width: 300px; margin-left: 40px; float: left; margin-bottom: 3em; }
+
+/* Prevent any long unbreakable word (URL, slug, etc.) from blowing
+   out a column. overflow-wrap is the modern standard; word-break
+   is the fallback for older engines. */
+section.left.three-col,
+section.mid.three-col,
+section.right.three-col {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    min-width: 0;
+}
 
 /* Social section headings */
 section.social h2 {
@@ -369,17 +361,7 @@ ul.infobox { list-style-type: none; }
 ul.infobox li { margin-bottom: 1em; }
 .infobox .label { text-transform: uppercase; font-size: 10px; color: #AAA; }
 
-/* ---- Footer ---- */
-footer {
-    position: relative;
-    margin-top: -40px;
-    height: 26px;
-    text-align: center;
-    color: #444;
-    padding-top: 14px;
-    clear: both;
-}
-footer a, footer a:visited { color: #777; text-decoration: none; }
+/* ---- Footer — see full rules at the bottom of this file ---- */
 
 /* ---- Utility ---- */
 .clearfix::before, .clearfix::after { content: ""; display: block; height: 0; overflow: hidden; }
@@ -410,11 +392,17 @@ footer a, footer a:visited { color: #777; text-decoration: none; }
 
 /* Update notes on homepage — teaser previews fed from blog.json */
 #updates-list { list-style: none; margin: 0; padding: 0; }
-#updates-list li { margin-bottom: 1.5em; }
-#updates-list li .post-title { font-weight: bold; font-size: 14px; }
+#updates-list li { margin-bottom: 1.8em; }
+/* Date sits on its own line above the title */
+#updates-list li .post-date { font-size: 10px; color: var(--color-muted); display: block; margin-bottom: 0.25em; }
+/* Title on its own line, below the date */
+#updates-list li .post-title { font-weight: bold; font-size: 14px; display: block; margin-bottom: 0.4em; }
 #updates-list li .post-title a { color: var(--color-link); }
-#updates-list li .post-date { font-size: 10px; color: var(--color-muted); display: block; margin-bottom: 0.3em; }
-#updates-list li .post-excerpt { font-size: 12px; line-height: 1.5; color: var(--color-text); }
+#updates-list li .post-title a:hover { color: var(--color-link-hover); }
+/* Excerpt as its own block below the title */
+#updates-list li .post-excerpt { font-size: 12px; line-height: 1.5; color: var(--color-text); display: block; }
+#updates-list li .post-excerpt a { color: var(--color-muted); font-style: italic; }
+#updates-list li .post-excerpt a:hover { color: var(--color-link-hover); }
 
 /* ---- Community page ---- */
 #links-list { list-style: none; margin-left: 0; padding: 0; }
@@ -483,16 +471,39 @@ footer a, footer a:visited { color: #777; text-decoration: none; }
     #userbox { display: none; }
 }
 
-/* ---- Stack columns and aside ---- */
-@media screen and (max-width: 750px) {
-    section.left,
-    aside {
+/* ---- INTERMEDIATE breakpoint: stack all columns ----
+   The two-column layout (640 + 60 + 300 = 1000px) and the
+   three-column layout (300 + 40 + 300 + 40 + 300 = 980px) both
+   break at ~1000px. We stack everything at that point in one clean
+   step — no half-broken intermediate states.
+
+   The aside is centred at a fixed width here (300px) so the
+   animals image + Download button sit on-grid in the middle of
+   the available space, rather than floating left in a narrow column.
+   The button stays at 100% of the aside's 300px — it does NOT get
+   a max-width cap here; that is correct desktop-stacked behaviour.
+
+   Three-col margin-left is zeroed here so the Help column (which
+   carries margin-left: 40px on desktop) aligns flush-left with
+   Discord and Update Notes once stacked. */
+@media screen and (max-width: 1040px) {
+    /* Stack the two-column hero layout */
+    section.left {
         float: none;
         width: 100%;
         margin-left: 0;
         margin-bottom: 2em;
     }
 
+    aside {
+        float: none;
+        width: 300px;           /* keep the original column width… */
+        margin-left: auto;      /* …and centre it in the available space */
+        margin-right: auto;
+        margin-bottom: 2em;
+    }
+
+    /* Stack the three-column row and flush all left margins */
     section.left.three-col,
     section.mid.three-col,
     section.right.three-col {
@@ -500,6 +511,17 @@ footer a, footer a:visited { color: #777; text-decoration: none; }
         width: 100%;
         margin-left: 0;
         margin-bottom: 2em;
+    }
+}
+
+/* ---- MOBILE breakpoint: truly full-width ----
+   Below 750px the aside also goes full-width (no centred cap),
+   and the animals image is scaled down to fit. Everything else
+   is already stacked from the intermediate breakpoint above. */
+@media screen and (max-width: 750px) {
+    aside {
+        width: 100%;
+        max-width: 100%;
     }
 
     #animals {
@@ -518,4 +540,171 @@ footer a, footer a:visited { color: #777; text-decoration: none; }
     tr, img { page-break-inside: avoid; }
     p, h2, h3 { orphans: 3; widows: 3; }
     h2, h3 { page-break-after: avoid; }
+}
+
+/* ============================================================
+   FOOTER — bg_footer texture (48×48 tile), expandable height,
+   mirrors the header's structure and gradient logic.
+   Gradient: top-to-bottom, 0.4 → 0.8 opacity (darkens downward,
+   opposite direction from the header which darkens upward).
+   Min-height is one tile row (48px). Will expand if text wraps.
+   ============================================================ */
+footer {
+  position: relative;
+  /* Remove the old negative-margin sticky-footer trick */
+  margin-top: 0;
+  min-height: 48px;
+  height: auto;
+  background: #211710 url('../images/bg_footer.png');
+  /* gradient overlay mirrors the header but flipped vertically */
+  padding: 0;
+  clear: both;
+  text-align: center;
+  color: #999;
+}
+
+footer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.8) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+footer p {
+  position: relative;
+  z-index: 1;
+  /* Equal padding top and bottom = text always vertically centered
+     within its tile rows. Padding of 14px gives 48px total row for
+     13px text with 1.4 line-height (~18px) → (48-18)/2 ≈ 15px each side */
+  padding: 15px 20px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: #888;
+}
+
+footer a, footer a:visited { color: #aaa; text-decoration: none; }
+footer a:hover { color: #fff; }
+
+/* ============================================================
+   GAME PAGE SIDEBAR NAVIGATION
+   Replaces the old download-links aside on game sub-pages.
+   Lists the game sub-pages; active page is highlighted in accent.
+   ============================================================ */
+.game-subnav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.game-subnav li {
+  margin-bottom: 0.3em;
+}
+
+.game-subnav li a {
+  display: block;
+  padding: 6px 10px;
+  background: #1a1a1a;
+  color: var(--color-link);
+  font-size: 14px;
+  font-weight: bold;
+  border-left: 3px solid transparent;
+}
+
+.game-subnav li a:hover {
+  background: #222;
+  color: var(--color-link-hover);
+  border-left-color: var(--color-accent);
+}
+
+.game-subnav li.active a {
+  color: var(--color-accent);
+  border-left-color: var(--color-accent);
+  background: #181818;
+}
+
+.game-subnav-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #666;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.6em;
+  margin-top: 0;
+  padding-left: 10px;
+}
+
+/* ---- Help sub-page sidebar (same style as game subnav) ---- */
+.help-subnav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.help-subnav li {
+  margin-bottom: 0.3em;
+}
+
+.help-subnav li a {
+  display: block;
+  padding: 6px 10px;
+  background: #1a1a1a;
+  color: var(--color-link);
+  font-size: 14px;
+  font-weight: bold;
+  border-left: 3px solid transparent;
+}
+
+.help-subnav li a:hover {
+  background: #222;
+  color: var(--color-link-hover);
+  border-left-color: var(--color-accent);
+}
+
+.help-subnav li.active a {
+  color: var(--color-accent);
+  border-left-color: var(--color-accent);
+  background: #181818;
+}
+
+.help-subnav-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #666;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.6em;
+  margin-top: 0;
+  padding-left: 10px;
+}
+
+/* ============================================================
+   DISCORD WIDGET
+   The Discord server widget embed sits in col 1 of the homepage.
+   It has a fixed width set by Discord (350px max) but we let it
+   fill its column and cap at the column width.
+   The fallback text is shown when the widget iframe is blocked
+   (e.g. privacy extensions, Firefox strict mode).
+   ============================================================ */
+.discord-widget-wrap {
+    margin-top: 1.2em;
+}
+
+.discord-widget-wrap iframe {
+    width: 100%;
+    max-width: 300px;
+    height: 300px;
+    border: none;
+    border-radius: 4px;
+    display: block;
+}
+
+.discord-widget-fallback {
+    margin-top: 0.8em;
+    font-size: 12px;
+    color: var(--color-muted);
+}
+
+.discord-widget-fallback a {
+    color: var(--color-link);
 }

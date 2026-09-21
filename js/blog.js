@@ -12,6 +12,8 @@
      count:     number of posts to show in teaser mode (default 3)
      rootPath:  path prefix for links back to blog.html
                 Use './' from root pages, '../' from /game/ etc.
+     wordLimit: max words shown in teaser before "Continue reading…"
+                Defaults to 30.
 
    TO ADD A NEW POST:
    Edit blog.json in the site root. Add a new object at the TOP
@@ -20,14 +22,12 @@
      title: post title
      date:  YYYY-MM-DD
      body:  full post text. Use \n\n to separate paragraphs.
-            Basic Markdown is NOT parsed — plain text only.
-            To add links, use the bodyHtml field instead (raw HTML).
+            Plain text only. Use bodyHtml for raw HTML instead.
    ============================================================ */
 
 (function () {
 
-  /* Fetch blog.json relative to the site root, regardless of which
-     page we're on. rootPath is passed in from the calling page. */
+  /* Fetch blog.json relative to the site root */
   async function loadPosts(rootPath) {
     const url = (rootPath || './') + 'blog.json';
     try {
@@ -47,11 +47,16 @@
     } catch (_) { return iso; }
   }
 
-  /* Trim body text to roughly `words` words, appending ellipsis */
-  function excerpt(text, words) {
+  /* Strip HTML tags to get plain text for word counting */
+  function stripTags(html) {
+    return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  /* Trim body text to `limit` words. Returns { text, truncated }. */
+  function trimWords(text, limit) {
     const parts = text.trim().split(/\s+/);
-    if (parts.length <= words) return text.trim();
-    return parts.slice(0, words).join(' ') + '…';
+    if (parts.length <= limit) return { text: text.trim(), truncated: false };
+    return { text: parts.slice(0, limit).join(' ') + '\u2026', truncated: true };
   }
 
   /* Turn plain \n\n-separated paragraphs into <p> tags */
@@ -61,7 +66,7 @@
     }).join('\n');
   }
 
-  function renderFull(posts, rootPath) {
+  function renderFull(posts) {
     return posts.map(function (post) {
       const html = post.bodyHtml || bodyToHtml(post.body || '');
       return [
@@ -74,24 +79,37 @@
     }).join('\n');
   }
 
-  /* Teaser: show post title, date, and ~200-word excerpt */
-  function renderTeaser(posts, count, rootPath) {
+  /* Teaser: date on own line, title on own line, excerpt below,
+     "Continue reading…" when truncated */
+  function renderTeaser(posts, count, rootPath, wordLimit) {
     const shown = posts.slice(0, count || 3);
+    const limit = wordLimit || 30;
+
     if (shown.length === 0) return '<p class="dark">No posts yet.</p>';
+
     const items = shown.map(function (post) {
-      const body = post.bodyHtml
-        ? post.bodyHtml.replace(/<[^>]+>/g, '')   // strip tags for plain excerpt
-        : (post.body || '');
-      const ex = excerpt(body, 50);
       const link = (rootPath || './') + 'blog.html#' + post.id;
+
+      /* Get plain text for excerpt */
+      const rawText = post.bodyHtml
+        ? stripTags(post.bodyHtml)
+        : (post.body || '').replace(/\n/g, ' ');
+
+      const trimmed = trimWords(rawText, limit);
+      const excerptHtml = trimmed.text +
+        (trimmed.truncated
+          ? ' <a href="' + link + '">Continue reading&hellip;</a>'
+          : '');
+
       return [
         '<li>',
         '  <span class="post-date">' + formatDate(post.date) + '</span>',
         '  <span class="post-title"><a href="' + link + '">' + post.title + '</a></span>',
-        '  <span class="post-excerpt">' + ex + '</span>',
+        '  <span class="post-excerpt">' + excerptHtml + '</span>',
         '</li>'
       ].join('\n');
     }).join('\n');
+
     return '<ul id="updates-list">' + items + '</ul>';
   }
 
@@ -108,7 +126,7 @@
         return;
       }
       if (options.mode === 'teaser') {
-        el.innerHTML = renderTeaser(posts, options.count, rootPath);
+        el.innerHTML = renderTeaser(posts, options.count, rootPath, options.wordLimit);
       } else {
         el.innerHTML = renderFull(posts, rootPath);
       }
