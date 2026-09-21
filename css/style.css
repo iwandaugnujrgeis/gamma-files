@@ -1,20 +1,9 @@
 /* ============================================================
    GAMMA FILES: THE LOST UPDATE — Main Stylesheet
    Based on the classic Minecraft website (circa 2012)
-   Adapted and extended for this modpack site.
-
-   ASSUMPTIONS:
-   - stone.png / dirt.png are not yet provided; bg_main.png and
-     bg_top.png (the originals, with baked-in darkness) are used
-     as placeholders. When stone.png / dirt.png are supplied,
-     swap the background declarations in :root / header.
-   - Header gradient darkness is baked into bg_top.png for now.
-     When raw dirt.png is used, apply the CSS overlay below.
-   - Grid is 1000px centered container, matching the original.
-   - Left "main" column = 640px, right "aside" = 300px (gap 60px).
    ============================================================ */
 
-/* ---- Reset (mirrors original) ---- */
+/* ---- Reset ---- */
 html, body, div, span, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp,
@@ -24,17 +13,11 @@ table, caption, tbody, tfoot, thead, tr, th, td,
 article, aside, canvas, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section, summary,
 time, mark, audio, video {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 100%;
-    font: inherit;
-    vertical-align: baseline;
+    margin: 0; padding: 0; border: 0;
+    font-size: 100%; font: inherit; vertical-align: baseline;
 }
-
 article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section { display: block; }
-
 blockquote, q { quotes: none; }
 blockquote:before, blockquote:after,
 q:before, q:after { content: ''; content: none; }
@@ -43,28 +26,24 @@ hr { display: block; height: 1px; border: 0; border-top: 1px solid #555; margin:
 
 /* ---- Design tokens ---- */
 :root {
-    --color-bg:          #111;
-    --color-text:        #E0D0D0;
-    --color-heading:     #fff;
-    --color-link:        #aaf;
-    --color-link-hover:  #ccf;
-    --color-accent:      #ffb400;
-    --color-accent-dim:  #ffd571;
-    --color-dark:        #777;
-    --color-muted:       #b1a5a5;
-
-    /* Header darkening (configurable).
-       bg_top.png already has baked gradient; set these to 1 if
-       using raw dirt.png and the CSS overlay will apply instead. */
-    --header-overlay-opacity-bottom: 0;   /* 0 = baked sprite, 1 = pure CSS */
-    --header-overlay-opacity-top:    0;
-
-    --font-base: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    --container-width: 1000px;
+    --color-bg:         #111;
+    --color-text:       #E0D0D0;
+    --color-heading:    #fff;
+    --color-link:       #aaf;
+    --color-link-hover: #ccf;
+    --color-accent:     #13e800;
+    --color-accent-dim: #ffd571;
+    --color-dark:       #777;
+    --color-muted:      #b1a5a5;
+    --font-base:        'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --container-width:  1000px;
 }
 
-/* ---- Base ---- */
-html, body { height: 100%; overflow-x: hidden; }
+/* ---- Base ----
+   Matches the original exactly:
+   - html has overflow-y: scroll (always show scrollbar)
+   - body has the tiled background, NO height:100%, NO overflow:hidden
+   - This lets the background tile naturally and scroll with the page */
 html { overflow-y: scroll; }
 
 body {
@@ -73,19 +52,11 @@ body {
     color: var(--color-text);
 }
 
-/* Optional CSS darkening overlay for body bg (for when raw stone.png is used).
-   Currently inactive because bg_main.png has baked darkness. */
-body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: -1;
-    /* background: rgba(0,0,0,0.45); */  /* Uncomment when using raw stone.png */
-}
+/* The original used this trick to make the wrap fill 100% height
+   without the body/html height:100% causing background-attachment issues */
+#wrap { display: table; height: 100%; width: 100%; min-height: 100%; }
 
 h1, h2, h3, h4, h5, h6 { font-weight: bold; color: var(--color-heading); }
-
 h1 { font-size: 24px; }
 h2 { font-size: 18px; margin-top: 2em; }
 h3 { font-size: 14px; margin-top: 2em; }
@@ -99,8 +70,7 @@ strong, th { font-weight: bold; }
 nav ul, nav li { margin: 0; list-style: none; list-style-image: none; }
 
 a, a:active, a:visited { color: var(--color-link); text-decoration: none; }
-a:hover { color: var(--color-link-hover); outline: none; }
-a:hover, a:active { outline: none; }
+a:hover, a:active { color: var(--color-link-hover); outline: none; }
 
 select, input, textarea, button { font: 99% var(--font-base); }
 pre, code, kbd, samp { font-family: monospace, sans-serif; }
@@ -109,70 +79,81 @@ button { width: auto; overflow: visible; cursor: pointer; }
 input, select { vertical-align: middle; }
 
 ::-moz-selection { background: #71b147; color: #593d29; text-shadow: none; }
-::selection        { background: #71b147; color: #593d29; text-shadow: none; }
+::selection      { background: #71b147; color: #593d29; text-shadow: none; }
 
-.small  { font-size: 11px; }
-.dark   { color: var(--color-dark); }
+.small { font-size: 11px; }
+.dark  { color: var(--color-dark); }
 
-/* ---- Outer wrap ---- */
-#wrap { min-height: 100%; width: 100%; }
+/* ============================================================
+   HEADER
+   The header now uses CSS gradient instead of relying on the
+   baked-in gradient in bg_top.png. This lets it expand in
+   height when the nav wraps to a second row on narrow windows,
+   while still tiling the dirt texture correctly.
 
-/* ---- Header ---- */
+   Gradient spec from the original brief:
+   - bottom: opacity 0.8  (darkest)
+   - top:    opacity 0.4  (lighter)
+   ============================================================ */
 header {
     position: relative;
-    height: 48px;
+    /* No fixed height — let it grow when nav wraps */
     background: #211710 url('../images/bg_top.png');
     overflow: visible;
     z-index: 10;
 }
 
-/* CSS gradient overlay — active only when raw dirt.png is used
-   (set --header-overlay-opacity-* tokens above to non-zero) */
-header::before {
+/* CSS gradient overlay replaces the baked-in gradient in bg_top.png */
+header::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-        to top,
-        rgba(0,0,0, var(--header-overlay-opacity-bottom)),
-        rgba(0,0,0, var(--header-overlay-opacity-top))
-    );
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 100%);
     pointer-events: none;
+    z-index: 0;
 }
 
 #header-container {
+    position: relative;
+    z-index: 1;          /* sits above the ::after gradient overlay */
     width: var(--container-width);
     margin: 0 auto;
-    position: relative;
-    height: 48px;
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;     /* lets nav items wrap to a second row */
+    align-items: flex-start;
+    padding: 0;
 }
 
-/* ---- Logo ---- */
+/* ---- Logo ----
+   Fixed position: top-left corner of the header, never moves or resizes.
+   Width matches the original (260px). Height is 48px to align with one
+   tile row. flex-shrink: 0 prevents any squishing. */
 #logo {
     flex-shrink: 0;
     width: 260px;
-    height: 44px;
+    height: 48px;
     display: block;
     overflow: hidden;
     text-indent: -10000px;
     background: transparent url('../images/logo.png') no-repeat 0 center;
     background-size: auto 38px;
-    margin-right: 20px;
 }
 
-/* ---- Nav menu ---- */
+/* ---- Nav menu ----
+   Lives in the remaining 2/3 of the header row next to the logo.
+   flex-wrap: wrap means items spill onto a second line — the header
+   grows in height to accommodate, and the dirt texture tiles behind. */
 #menu {
     list-style: none;
     font-size: 16px;
     font-weight: bold;
     margin: 0;
     padding: 0;
-    display: flex;
-    align-items: center;
-    gap: 0;
+    /* flex: 1 lets the menu take up everything right of the logo */
     flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
 }
 
 #menu > li {
@@ -185,16 +166,17 @@ header::before {
 #menu > li > a:visited {
     color: #fff;
     text-decoration: none;
-    line-height: 48px;
+    line-height: 48px;   /* matches one tile row height */
     display: block;
     padding: 0 4px;
 }
 
-#menu > li > a:hover {
-    color: var(--color-accent);
-}
+#menu > li > a:hover { color: var(--color-accent); }
 
-/* Dropdown */
+/* Active nav item */
+#menu li.active > a { color: var(--color-accent); }
+
+/* ---- Dropdown ---- */
 #menu li ul {
     margin: 0;
     padding: 4px 0 0;
@@ -208,12 +190,9 @@ header::before {
 
 #menu li:hover > ul,
 #menu li ul:hover { display: block; }
+#menu li.open > ul { display: block; }
 
-#menu li ul li {
-    display: block;
-    float: none;
-    margin: 0;
-}
+#menu li ul li { display: block; float: none; margin: 0; }
 
 #menu li ul li a {
     display: block;
@@ -227,38 +206,34 @@ header::before {
 
 #menu li ul li a:hover { background: #3a3a3a; color: #fff; }
 
-/* Active nav item */
-#menu li.active > a { color: var(--color-accent); }
-
-/* ---- User box (login/register) ---- */
+/* ---- Userbox ----
+   "Download" link in the top-right. Hidden on narrow screens since
+   the Download button is in the sidebar. */
 #userbox {
-    margin-left: auto;
+    flex-shrink: 0;
     text-align: right;
     white-space: nowrap;
     font-size: 14px;
-    padding-top: 0;
+    line-height: 48px;
+    margin-left: auto;
+    padding-left: 10px;
 }
 
 #userbox a, #userbox a:visited { color: var(--color-link); }
 
-/* ---- Main content container ---- */
+/* ============================================================
+   MAIN CONTENT
+   ============================================================ */
 #main {
     width: var(--container-width);
     margin: 0 auto;
     margin-top: 1em;
     position: relative;
     padding: 20px 0 40px;
-    overflow: hidden; /* clearfix */
+    overflow: hidden;
 }
 
-/* ---- Two-column layout: 2/3 + 1/3 ---- */
-/*
-   Total = 1000px
-   Left section:  640px
-   Gap:            60px  (margin-left on aside)
-   Right aside:   300px
-   Total:         640 + 60 + 300 = 1000px  ✓
-*/
+/* Two-column layout: 640px left + 60px gap + 300px right = 1000px */
 section.left {
     width: 640px;
     float: left;
@@ -273,11 +248,11 @@ aside {
 }
 
 /* Three-column layout */
-section.left.three-col  { width: 300px; float: left; margin-bottom: 3em; }
+section.left.three-col { width: 300px; float: left; margin-bottom: 3em; }
 section.mid.three-col,
 section.right.three-col { width: 300px; margin-left: 40px; float: left; margin-bottom: 3em; }
 
-/* Social sections in the three-col footer row */
+/* Social section headings */
 section.social h2 {
     font-size: 18px;
     color: #fff;
@@ -288,7 +263,6 @@ section.social h2 {
     min-height: 29px;
     margin-bottom: 1em;
 }
-
 section.social h2 a { color: #fff; text-decoration: none; }
 section.social h2 a:hover { color: var(--color-accent); }
 section.social > div { margin-top: 1.5em; }
@@ -296,11 +270,10 @@ section.social > div { margin-top: 1.5em; }
 /* ---- Video embed ---- */
 .video-wrap {
     position: relative;
-    padding-bottom: 56.25%; /* 16:9 */
+    padding-bottom: 56.25%;
     height: 0;
     overflow: hidden;
     background: #000;
-    margin-top: 0;
 }
 
 .video-wrap iframe {
@@ -316,14 +289,10 @@ section.social > div { margin-top: 1.5em; }
 .intro-text em { font-style: italic; }
 
 /* ---- Download count ---- */
-#download-count {
-    color: var(--color-text);
-    font-weight: bold;
-}
-
+#download-count { color: var(--color-text); font-weight: bold; }
 #download-count.loading { color: var(--color-dark); font-style: italic; }
 
-/* ---- Right sidebar / aside ---- */
+/* ---- Right sidebar / animals image ---- */
 #animals {
     padding-top: 220px;
     background: transparent url('../images/animals.png') no-repeat top center;
@@ -332,13 +301,15 @@ section.social > div { margin-top: 1.5em; }
     margin-bottom: 1.5em;
 }
 
-/* ---- Download button ---- */
+/* ---- Download button ----
+   Gradient: lighter top → darker bottom, as requested.
+   :visited explicitly resets to prevent "always highlighted" bug. */
 .btn-download {
     display: block;
     width: 100%;
     padding: 14px 10px;
-    background: var(--color-accent);
-    color: #111;
+    background: linear-gradient(to bottom, #ffd050 0%, #e09800 100%);
+    color: #1a0f00;
     font-size: 22px;
     font-weight: bold;
     text-align: center;
@@ -346,22 +317,45 @@ section.social > div { margin-top: 1.5em; }
     border-radius: 3px;
     line-height: 1.2;
     box-sizing: border-box;
-    transition: background 0.15s;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 4px rgba(0,0,0,0.4);
+    transition: filter 0.12s ease, box-shadow 0.12s ease;
     margin-top: 1em;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.btn-download:hover,
-.btn-download:active,
-.btn-download:visited { color: #111; background: var(--color-accent-dim); }
+.btn-download:visited {
+    background: linear-gradient(to bottom, #ffd050 0%, #e09800 100%);
+    color: #1a0f00;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 4px rgba(0,0,0,0.4);
+}
 
+.btn-download:hover {
+    background: linear-gradient(to bottom, #ffe577 0%, #f0ac00 100%);
+    color: #1a0f00;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 3px 6px rgba(0,0,0,0.45);
+    filter: brightness(1.08);
+    text-decoration: none;
+}
+
+.btn-download:active {
+    background: linear-gradient(to bottom, #cc8800 0%, #e09800 100%);
+    color: #1a0f00;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    filter: none;
+}
+
+/* ---- Aside links (plain text style, used on credits / game pages) ---- */
 .aside-links {
-    text-align: center;
+    text-align: left;
     margin-top: 1em;
     font-size: 13px;
 }
 
 .aside-links a { color: var(--color-link); }
-.aside-links p { margin-top: 0.6em; }
+.aside-links p { margin-top: 0.8em; }
+
+/* Centred variant for the homepage aside */
+.aside-links.centered { text-align: center; }
 
 /* ---- Infobox ---- */
 .infobox {
@@ -371,7 +365,6 @@ section.social > div { margin-top: 1.5em; }
     margin: 2em 0;
     font-size: 16px;
 }
-
 ul.infobox { list-style-type: none; }
 ul.infobox li { margin-bottom: 1em; }
 .infobox .label { text-transform: uppercase; font-size: 10px; color: #AAA; }
@@ -386,7 +379,6 @@ footer {
     padding-top: 14px;
     clear: both;
 }
-
 footer a, footer a:visited { color: #777; text-decoration: none; }
 
 /* ---- Utility ---- */
@@ -402,12 +394,27 @@ footer a, footer a:visited { color: #777; text-decoration: none; }
 .page-content ul { margin-top: 1em; }
 .page-content ul li { margin-bottom: 0.5em; }
 
-/* ---- Credits page ---- */
-.credits-entry {
-    margin-bottom: 2em;
-}
+/* ---- Game pages aside — plain text links, same style as Credits aside ---- */
+.game-aside-stub .aside-links { text-align: left; margin-top: 0; }
 
+/* ---- Credits page ---- */
+.credits-entry { margin-bottom: 2em; }
 .credits-entry h3 { margin-top: 0; }
+
+/* ---- Blog page ---- */
+.blog-post { margin-bottom: 3em; border-bottom: 1px solid #333; padding-bottom: 2em; }
+.blog-post:last-child { border-bottom: none; }
+.blog-post h2 { margin-top: 0; }
+.blog-post .post-date { font-size: 11px; color: var(--color-muted); margin-top: 0.3em; }
+.blog-post p { margin-top: 1em; line-height: 1.6; }
+
+/* Update notes on homepage — teaser previews fed from blog.json */
+#updates-list { list-style: none; margin: 0; padding: 0; }
+#updates-list li { margin-bottom: 1.5em; }
+#updates-list li .post-title { font-weight: bold; font-size: 14px; }
+#updates-list li .post-title a { color: var(--color-link); }
+#updates-list li .post-date { font-size: 10px; color: var(--color-muted); display: block; margin-bottom: 0.3em; }
+#updates-list li .post-excerpt { font-size: 12px; line-height: 1.5; color: var(--color-text); }
 
 /* ---- Community page ---- */
 #links-list { list-style: none; margin-left: 0; padding: 0; }
@@ -427,15 +434,78 @@ footer a, footer a:visited { color: #777; text-decoration: none; }
 }
 
 /* ---- Help page ---- */
-.faq dt {
-    font-weight: bold;
-    color: #fff;
-    margin-top: 1.5em;
+.faq dt { font-weight: bold; color: #fff; margin-top: 1.5em; }
+.faq dd { margin-left: 1.2em; margin-top: 0.4em; line-height: 1.6; }
+
+/* ============================================================
+   RESPONSIVE LAYOUT
+
+   Strategy:
+   - The logo never changes size or position.
+   - The nav buttons stay the same font size (16px) — they just
+     wrap to a second row when there isn't room on one line.
+     The header grows in height to fit them (dirt texture tiles).
+   - The main container clips at 1000px; below that it becomes
+     fluid (percentage widths).
+   - Below ~720px the aside column disappears (stacks below on
+     mobile), but the header wrapping already handles most of
+     the narrowing before that point.
+   - One breakpoint for stacking. No intermediate "broken" modes.
+
+   The userbox ("Download" link) is hidden when the window is
+   narrow enough that it would push the nav to a third row.
+   ============================================================ */
+
+/* ---- Fluid container: no intermediate column shrinking.
+   Instead of shrinking columns at odd percentages we just let
+   the 1000px container overflow and clip, then at the right point
+   flip to stacked layout. The content still looks correct between
+   1000px and ~750px without any intermediate breakpoint. ---- */
+
+/* Fluid padding so the container doesn't touch the window edge */
+@media screen and (max-width: 1040px) {
+    #header-container,
+    #main {
+        width: auto;
+        padding-left:  20px;
+        padding-right: 20px;
+        box-sizing: border-box;
+    }
+    /* #main has its own padding already; reset it properly */
+    #main {
+        padding-top:    20px;
+        padding-bottom: 40px;
+    }
 }
-.faq dd {
-    margin-left: 1.2em;
-    margin-top: 0.4em;
-    line-height: 1.6;
+
+/* Hide the userbox before the nav needs a third row */
+@media screen and (max-width: 900px) {
+    #userbox { display: none; }
+}
+
+/* ---- Stack columns and aside ---- */
+@media screen and (max-width: 750px) {
+    section.left,
+    aside {
+        float: none;
+        width: 100%;
+        margin-left: 0;
+        margin-bottom: 2em;
+    }
+
+    section.left.three-col,
+    section.mid.three-col,
+    section.right.three-col {
+        float: none;
+        width: 100%;
+        margin-left: 0;
+        margin-bottom: 2em;
+    }
+
+    #animals {
+        padding-top: 160px;
+        background-size: 160px auto;
+    }
 }
 
 /* ---- Print ---- */

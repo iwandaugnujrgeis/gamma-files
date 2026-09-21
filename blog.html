@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Development Log — Gamma Files: The Lost Update</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="wrap">
+  <div id="main" class="clearfix">
+
+    <section class="left page-content" id="blog-section">
+      <h1>Development Log</h1>
+      <p>Changelogs, development notes, and updates from the making of Gamma Files: The Lost Update.</p>
+
+      <!-- Posts are injected here by blog.js -->
+      <div id="blog-posts"><p class="dark">Loading…</p></div>
+    </section>
+
+    <aside>
+      <div class="aside-links">
+        <p><a href="index.html">← Home</a></p>
+        <p><a href="game/index.html">About the modpack</a></p>
+        <p><a href="https://modrinth.com/modpack/gamma-files-lite" target="_blank" rel="noopener">Download on Modrinth</a></p>
+        <p><a href="https://www.curseforge.com/minecraft/modpacks/gamma-files" target="_blank" rel="noopener">Download on CurseForge</a></p>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<script src="js/nav.js"></script>
+<script src="js/blog.js"></script>
+<script>
+  initNav('blog');
+  renderBlog('blog-posts', { mode: 'full', rootPath: './' });
+</script>
+</body>
+</html>
