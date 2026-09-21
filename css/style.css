@@ -1,0 +1,451 @@
+/* ============================================================
+   GAMMA FILES: THE LOST UPDATE — Main Stylesheet
+   Based on the classic Minecraft website (circa 2012)
+   Adapted and extended for this modpack site.
+
+   ASSUMPTIONS:
+   - stone.png / dirt.png are not yet provided; bg_main.png and
+     bg_top.png (the originals, with baked-in darkness) are used
+     as placeholders. When stone.png / dirt.png are supplied,
+     swap the background declarations in :root / header.
+   - Header gradient darkness is baked into bg_top.png for now.
+     When raw dirt.png is used, apply the CSS overlay below.
+   - Grid is 1000px centered container, matching the original.
+   - Left "main" column = 640px, right "aside" = 300px (gap 60px).
+   ============================================================ */
+
+/* ---- Reset (mirrors original) ---- */
+html, body, div, span, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp,
+small, strong, sub, sup, var, b, i, dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+}
+
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section { display: block; }
+
+blockquote, q { quotes: none; }
+blockquote:before, blockquote:after,
+q:before, q:after { content: ''; content: none; }
+table { border-collapse: collapse; border-spacing: 0; }
+hr { display: block; height: 1px; border: 0; border-top: 1px solid #555; margin: 1em 0; padding: 0; }
+
+/* ---- Design tokens ---- */
+:root {
+    --color-bg:          #111;
+    --color-text:        #E0D0D0;
+    --color-heading:     #fff;
+    --color-link:        #aaf;
+    --color-link-hover:  #ccf;
+    --color-accent:      #ffb400;
+    --color-accent-dim:  #ffd571;
+    --color-dark:        #777;
+    --color-muted:       #b1a5a5;
+
+    /* Header darkening (configurable).
+       bg_top.png already has baked gradient; set these to 1 if
+       using raw dirt.png and the CSS overlay will apply instead. */
+    --header-overlay-opacity-bottom: 0;   /* 0 = baked sprite, 1 = pure CSS */
+    --header-overlay-opacity-top:    0;
+
+    --font-base: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --container-width: 1000px;
+}
+
+/* ---- Base ---- */
+html, body { height: 100%; overflow-x: hidden; }
+html { overflow-y: scroll; }
+
+body {
+    background: var(--color-bg) url('../images/bg_main.png');
+    font: 13px/1.4 var(--font-base);
+    color: var(--color-text);
+}
+
+/* Optional CSS darkening overlay for body bg (for when raw stone.png is used).
+   Currently inactive because bg_main.png has baked darkness. */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    /* background: rgba(0,0,0,0.45); */  /* Uncomment when using raw stone.png */
+}
+
+h1, h2, h3, h4, h5, h6 { font-weight: bold; color: var(--color-heading); }
+
+h1 { font-size: 24px; }
+h2 { font-size: 18px; margin-top: 2em; }
+h3 { font-size: 14px; margin-top: 2em; }
+h4 { font-size: 13px; margin-top: 2em; }
+
+p, ul { margin-top: 1.5em; }
+ul, ol { margin-left: 2em; }
+ol { list-style-type: decimal; }
+small { font-size: 85%; }
+strong, th { font-weight: bold; }
+nav ul, nav li { margin: 0; list-style: none; list-style-image: none; }
+
+a, a:active, a:visited { color: var(--color-link); text-decoration: none; }
+a:hover { color: var(--color-link-hover); outline: none; }
+a:hover, a:active { outline: none; }
+
+select, input, textarea, button { font: 99% var(--font-base); }
+pre, code, kbd, samp { font-family: monospace, sans-serif; }
+textarea { overflow: auto; }
+button { width: auto; overflow: visible; cursor: pointer; }
+input, select { vertical-align: middle; }
+
+::-moz-selection { background: #71b147; color: #593d29; text-shadow: none; }
+::selection        { background: #71b147; color: #593d29; text-shadow: none; }
+
+.small  { font-size: 11px; }
+.dark   { color: var(--color-dark); }
+
+/* ---- Outer wrap ---- */
+#wrap { min-height: 100%; width: 100%; }
+
+/* ---- Header ---- */
+header {
+    position: relative;
+    height: 48px;
+    background: #211710 url('../images/bg_top.png');
+    overflow: visible;
+    z-index: 10;
+}
+
+/* CSS gradient overlay — active only when raw dirt.png is used
+   (set --header-overlay-opacity-* tokens above to non-zero) */
+header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        rgba(0,0,0, var(--header-overlay-opacity-bottom)),
+        rgba(0,0,0, var(--header-overlay-opacity-top))
+    );
+    pointer-events: none;
+}
+
+#header-container {
+    width: var(--container-width);
+    margin: 0 auto;
+    position: relative;
+    height: 48px;
+    display: flex;
+    align-items: center;
+}
+
+/* ---- Logo ---- */
+#logo {
+    flex-shrink: 0;
+    width: 260px;
+    height: 44px;
+    display: block;
+    overflow: hidden;
+    text-indent: -10000px;
+    background: transparent url('../images/logo.png') no-repeat 0 center;
+    background-size: auto 38px;
+    margin-right: 20px;
+}
+
+/* ---- Nav menu ---- */
+#menu {
+    list-style: none;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex: 1;
+}
+
+#menu > li {
+    position: relative;
+    margin-left: 10px;
+}
+
+#menu > li > a,
+#menu > li > a:active,
+#menu > li > a:visited {
+    color: #fff;
+    text-decoration: none;
+    line-height: 48px;
+    display: block;
+    padding: 0 4px;
+}
+
+#menu > li > a:hover {
+    color: var(--color-accent);
+}
+
+/* Dropdown */
+#menu li ul {
+    margin: 0;
+    padding: 4px 0 0;
+    position: absolute;
+    top: 48px;
+    left: 0;
+    display: none;
+    z-index: 100;
+    min-width: 160px;
+}
+
+#menu li:hover > ul,
+#menu li ul:hover { display: block; }
+
+#menu li ul li {
+    display: block;
+    float: none;
+    margin: 0;
+}
+
+#menu li ul li a {
+    display: block;
+    padding: 6px 14px;
+    background: #2a2a2a;
+    white-space: nowrap;
+    color: #ddd;
+    font-size: 14px;
+    border-bottom: 1px solid #1a1a1a;
+}
+
+#menu li ul li a:hover { background: #3a3a3a; color: #fff; }
+
+/* Active nav item */
+#menu li.active > a { color: var(--color-accent); }
+
+/* ---- User box (login/register) ---- */
+#userbox {
+    margin-left: auto;
+    text-align: right;
+    white-space: nowrap;
+    font-size: 14px;
+    padding-top: 0;
+}
+
+#userbox a, #userbox a:visited { color: var(--color-link); }
+
+/* ---- Main content container ---- */
+#main {
+    width: var(--container-width);
+    margin: 0 auto;
+    margin-top: 1em;
+    position: relative;
+    padding: 20px 0 40px;
+    overflow: hidden; /* clearfix */
+}
+
+/* ---- Two-column layout: 2/3 + 1/3 ---- */
+/*
+   Total = 1000px
+   Left section:  640px
+   Gap:            60px  (margin-left on aside)
+   Right aside:   300px
+   Total:         640 + 60 + 300 = 1000px  ✓
+*/
+section.left {
+    width: 640px;
+    float: left;
+    margin-bottom: 3em;
+}
+
+aside {
+    width: 300px;
+    margin-left: 60px;
+    float: left;
+    margin-bottom: 3em;
+}
+
+/* Three-column layout */
+section.left.three-col  { width: 300px; float: left; margin-bottom: 3em; }
+section.mid.three-col,
+section.right.three-col { width: 300px; margin-left: 40px; float: left; margin-bottom: 3em; }
+
+/* Social sections in the three-col footer row */
+section.social h2 {
+    font-size: 18px;
+    color: #fff;
+    padding-left: 40px;
+    background-repeat: no-repeat;
+    background-position: 0 center;
+    padding-top: 3px;
+    min-height: 29px;
+    margin-bottom: 1em;
+}
+
+section.social h2 a { color: #fff; text-decoration: none; }
+section.social h2 a:hover { color: var(--color-accent); }
+section.social > div { margin-top: 1.5em; }
+
+/* ---- Video embed ---- */
+.video-wrap {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 */
+    height: 0;
+    overflow: hidden;
+    background: #000;
+    margin-top: 0;
+}
+
+.video-wrap iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: 0;
+}
+
+/* ---- Description text ---- */
+.intro-text { margin-top: 1.5em; }
+.intro-text p { margin-top: 1.2em; line-height: 1.6; }
+.intro-text em { font-style: italic; }
+
+/* ---- Download count ---- */
+#download-count {
+    color: var(--color-text);
+    font-weight: bold;
+}
+
+#download-count.loading { color: var(--color-dark); font-style: italic; }
+
+/* ---- Right sidebar / aside ---- */
+#animals {
+    padding-top: 220px;
+    background: transparent url('../images/animals.png') no-repeat top center;
+    background-size: contain;
+    text-align: center;
+    margin-bottom: 1.5em;
+}
+
+/* ---- Download button ---- */
+.btn-download {
+    display: block;
+    width: 100%;
+    padding: 14px 10px;
+    background: var(--color-accent);
+    color: #111;
+    font-size: 22px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 3px;
+    line-height: 1.2;
+    box-sizing: border-box;
+    transition: background 0.15s;
+    margin-top: 1em;
+}
+
+.btn-download:hover,
+.btn-download:active,
+.btn-download:visited { color: #111; background: var(--color-accent-dim); }
+
+.aside-links {
+    text-align: center;
+    margin-top: 1em;
+    font-size: 13px;
+}
+
+.aside-links a { color: var(--color-link); }
+.aside-links p { margin-top: 0.6em; }
+
+/* ---- Infobox ---- */
+.infobox {
+    padding: 10px;
+    background-color: #333;
+    border: 1px solid #666;
+    margin: 2em 0;
+    font-size: 16px;
+}
+
+ul.infobox { list-style-type: none; }
+ul.infobox li { margin-bottom: 1em; }
+.infobox .label { text-transform: uppercase; font-size: 10px; color: #AAA; }
+
+/* ---- Footer ---- */
+footer {
+    position: relative;
+    margin-top: -40px;
+    height: 26px;
+    text-align: center;
+    color: #444;
+    padding-top: 14px;
+    clear: both;
+}
+
+footer a, footer a:visited { color: #777; text-decoration: none; }
+
+/* ---- Utility ---- */
+.clearfix::before, .clearfix::after { content: ""; display: block; height: 0; overflow: hidden; }
+.clearfix::after { clear: both; }
+.clearfix { zoom: 1; }
+.hidden { display: none; visibility: hidden; }
+.ir { display: block; text-indent: -999em; overflow: hidden; background-repeat: no-repeat; }
+
+/* ---- Game / subpage content ---- */
+.page-content h1 { margin-bottom: 0.5em; }
+.page-content p  { margin-top: 1.2em; line-height: 1.6; }
+.page-content ul { margin-top: 1em; }
+.page-content ul li { margin-bottom: 0.5em; }
+
+/* ---- Credits page ---- */
+.credits-entry {
+    margin-bottom: 2em;
+}
+
+.credits-entry h3 { margin-top: 0; }
+
+/* ---- Community page ---- */
+#links-list { list-style: none; margin-left: 0; padding: 0; }
+#links-list li { margin-bottom: 1.2em; }
+#links-list li a { font-size: 15px; font-weight: bold; }
+#links-list li span { display: block; color: var(--color-muted); font-size: 12px; margin-top: 2px; }
+
+/* ---- Store page ---- */
+.store-notice {
+    background: #1a1a1a;
+    border: 1px solid #444;
+    padding: 20px;
+    margin-top: 1.5em;
+    text-align: center;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+/* ---- Help page ---- */
+.faq dt {
+    font-weight: bold;
+    color: #fff;
+    margin-top: 1.5em;
+}
+.faq dd {
+    margin-left: 1.2em;
+    margin-top: 0.4em;
+    line-height: 1.6;
+}
+
+/* ---- Print ---- */
+@media print {
+    * { background: transparent !important; color: black !important; }
+    a, a:visited { color: #444 !important; text-decoration: underline; }
+    a[href]:after { content: " (" attr(href) ")"; }
+    pre, blockquote { border: 1px solid #999; page-break-inside: avoid; }
+    thead { display: table-header-group; }
+    tr, img { page-break-inside: avoid; }
+    p, h2, h3 { orphans: 3; widows: 3; }
+    h2, h3 { page-break-after: avoid; }
+}
