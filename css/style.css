@@ -300,8 +300,8 @@ section.social > div { margin-top: 1.5em; }
     display: block;
     width: 100%;
     padding: 14px 10px;
-    background: linear-gradient(to bottom, #ffd050 0%, #e09800 100%);
-    color: #1a0f00;
+    background: linear-gradient(to bottom, hsl(292, 100%, 66%) 0%, #bd00c7 100%);
+    color: #ffffff;
     font-size: 22px;
     font-weight: bold;
     text-align: center;
@@ -435,10 +435,9 @@ ul.infobox li { margin-bottom: 1em; }
      The header grows in height to fit them (dirt texture tiles).
    - The main container clips at 1000px; below that it becomes
      fluid (percentage widths).
-   - Below ~720px the aside column disappears (stacks below on
-     mobile), but the header wrapping already handles most of
-     the narrowing before that point.
-   - One breakpoint for stacking. No intermediate "broken" modes.
+   - Below ~1040px the aside floats right inside section.left's
+     text flow (Option B / 2012 MC inline float pattern).
+   - Below ~750px the float is cleared and everything stacks.
 
    The userbox ("Download" link) is hidden when the window is
    narrow enough that it would push the nav to a third row.
@@ -471,37 +470,29 @@ ul.infobox li { margin-bottom: 1em; }
     #userbox { display: none; }
 }
 
-/* ---- INTERMEDIATE breakpoint: stack all columns ----
-   The two-column layout (640 + 60 + 300 = 1000px) and the
-   three-column layout (300 + 40 + 300 + 40 + 300 = 980px) both
-   break at ~1000px. We stack everything at that point in one clean
-   step — no half-broken intermediate states.
+/* ---- INTERMEDIATE breakpoint: inline float (Option B) ----
+   At this width the two fixed columns (640 + 60 + 300 = 1000px)
+   no longer fit. Both section.left and aside remain floated, but
+   section.left shrinks to fill all available space minus the aside
+   column. The aside stays on the right, margin tightened from 60px
+   to 20px. Below the video the intro-text wraps naturally around
+   the aside — the 2012 minecraft.net float pattern.
 
-   The aside is centred at a fixed width here (300px) so the
-   animals image + Download button sit on-grid in the middle of
-   the available space, rather than floating left in a narrow column.
-   The button stays at 100% of the aside's 300px — it does NOT get
-   a max-width cap here; that is correct desktop-stacked behaviour.
-
-   Three-col margin-left is zeroed here so the Help column (which
-   carries margin-left: 40px on desktop) aligns flush-left with
-   Discord and Update Notes once stacked. */
+   Three-col margin-left is zeroed so the three bottom sections
+   align flush-left once stacked. */
+/* ---- INTERMEDIATE breakpoint: aside locks, video/text shrinks ----
+   The aside stays exactly 300px wide with exactly the same 60px gap
+   as on desktop. Only section.left shrinks to fill whatever remains.
+   No change to the animals image or button — they look identical to
+   desktop. Three-col sections stack below. */
 @media screen and (max-width: 1040px) {
-    /* Stack the two-column hero layout */
     section.left {
-        float: none;
-        width: 100%;
-        margin-left: 0;
+        width: calc(100% - 300px - 60px); /* same aside + gap as desktop */
         margin-bottom: 2em;
     }
 
-    aside {
-        float: none;
-        width: 300px;           /* keep the original column width… */
-        margin-left: auto;      /* …and centre it in the available space */
-        margin-right: auto;
-        margin-bottom: 2em;
-    }
+    /* aside: no changes needed — width, margin-left, and #animals
+       are all identical to desktop values. */
 
     /* Stack the three-column row and flush all left margins */
     section.left.three-col,
@@ -514,20 +505,26 @@ ul.infobox li { margin-bottom: 1em; }
     }
 }
 
-/* ---- MOBILE breakpoint: truly full-width ----
-   Below 750px the aside also goes full-width (no centred cap),
-   and the animals image is scaled down to fit. Everything else
-   is already stacked from the intermediate breakpoint above. */
+/* ---- MOBILE breakpoint: stack, full-width, same animals size ----
+   Below 750px both columns stack. The aside goes full-width with
+   margin cleared, but #animals keeps the exact same padding-top and
+   background-size as desktop so the image and button spacing are
+   identical — just centred in the full-width column. */
 @media screen and (max-width: 750px) {
-    aside {
+    section.left {
+        float: none;
         width: 100%;
-        max-width: 100%;
     }
 
-    #animals {
-        padding-top: 160px;
-        background-size: 160px auto;
+    aside {
+        float: none;
+        width: 100%;
+        margin-left: 0;
     }
+
+    /* #animals: no overrides — padding-top: 220px and
+       background-size: contain from the base rule already
+       produce the correct desktop-equivalent spacing. */
 }
 
 /* ---- Print ---- */
