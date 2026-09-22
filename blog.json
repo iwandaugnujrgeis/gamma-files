@@ -1,5 +1,11 @@
 [
   {
+    "id": "welcome1",
+    "title": "Goobye?!",
+    "date": "2026-09-23",
+    "body": "I will be very honest this time...\n\nNever give up."
+  },
+  {
     "id": "welcome",
     "title": "Welcome to the Gamma Files development log",
     "date": "2026-09-21",

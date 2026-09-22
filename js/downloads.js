@@ -89,9 +89,59 @@
     }
   }
 
+  /* ----------------------------------------------------------
+     Discord member / online count
+     Uses the public invite endpoint — no auth, no CORS issues.
+     Returns { members, online } or null on failure.
+     ---------------------------------------------------------- */
+  const DISCORD_INVITE = 'xgf7VWUczW';
+
+  async function fetchDiscord() {
+    try {
+      const res = await fetch(
+        `https://discord.com/api/v9/invites/${DISCORD_INVITE}?with_counts=true`
+      );
+      if (!res.ok) throw new Error('Discord fetch failed');
+      const data = await res.json();
+      return {
+        members: data.approximate_member_count ?? null,
+        online:  data.approximate_presence_count ?? null
+      };
+    } catch (e) {
+      console.warn('Discord fetch error:', e);
+      return null;
+    }
+  }
+
+  async function updateDiscord() {
+    const elMembers = document.getElementById('discord-members');
+    const elOnline  = document.getElementById('discord-online');
+    if (!elMembers && !elOnline) return;
+
+    const result = await fetchDiscord();
+
+    if (result && result.members !== null) {
+      elMembers.textContent = formatNumber(result.members);
+      elMembers.classList.remove('loading');
+    } else {
+      elMembers.textContent = 'many';
+      elMembers.classList.remove('loading');
+    }
+
+    if (result && result.online !== null) {
+      elOnline.textContent = formatNumber(result.online);
+      elOnline.classList.remove('loading');
+    } else {
+      elOnline.textContent = 'some';
+      elOnline.classList.remove('loading');
+    }
+  }
+
   // Run immediately and then on interval
   document.addEventListener('DOMContentLoaded', function () {
     updateCounter();
+    updateDiscord();
     setInterval(updateCounter, INTERVAL_MS);
+    setInterval(updateDiscord, INTERVAL_MS);
   });
 })();
