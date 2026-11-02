@@ -1,33 +1,5 @@
-/* ============================================================
-   blog.js — Blog post renderer
-   Reads blog.json and renders posts into a target element.
-
-   USAGE:
-   renderBlog(targetElementId, options)
-
-   options:
-     mode:      'full'    — renders all posts in full (blog.html)
-                'teaser'  — renders the latest N posts as short
-                            previews (homepage updates section)
-     count:     number of posts to show in teaser mode (default 3)
-     rootPath:  path prefix for links back to blog.html
-                Use './' from root pages, '../' from /game/ etc.
-     wordLimit: max words shown in teaser before "Continue reading…"
-                Defaults to 30.
-
-   TO ADD A NEW POST:
-   Edit blog.json in the site root. Add a new object at the TOP
-   of the array (newest first). Fields:
-     id:    unique slug (used as anchor: blog.html#slug)
-     title: post title
-     date:  YYYY-MM-DD
-     body:  full post text. Use \n\n to separate paragraphs.
-            Plain text only. Use bodyHtml for raw HTML instead.
-   ============================================================ */
-
 (function () {
 
-  /* Fetch blog.json relative to the site root */
   async function loadPosts(rootPath) {
     const url = (rootPath || './') + 'blog.json';
     try {
@@ -47,19 +19,16 @@
     } catch (_) { return iso; }
   }
 
-  /* Strip HTML tags to get plain text for word counting */
   function stripTags(html) {
     return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   }
 
-  /* Trim body text to `limit` words. Returns { text, truncated }. */
   function trimWords(text, limit) {
     const parts = text.trim().split(/\s+/);
     if (parts.length <= limit) return { text: text.trim(), truncated: false };
     return { text: parts.slice(0, limit).join(' ') + '\u2026', truncated: true };
   }
 
-  /* Turn plain \n\n-separated paragraphs into <p> tags */
   function bodyToHtml(text) {
     return text.trim().split(/\n\n+/).map(function (para) {
       return '<p>' + para.replace(/\n/g, '<br>') + '</p>';
@@ -79,8 +48,6 @@
     }).join('\n');
   }
 
-  /* Teaser: date on own line, title on own line, excerpt below,
-     "Continue reading…" when truncated */
   function renderTeaser(posts, count, rootPath, wordLimit) {
     const shown = posts.slice(0, count || 3);
     const limit = wordLimit || 30;
@@ -90,7 +57,6 @@
     const items = shown.map(function (post) {
       const link = (rootPath || './') + 'blog.html#' + post.id;
 
-      /* Get plain text for excerpt */
       const rawText = post.bodyHtml
         ? stripTags(post.bodyHtml)
         : (post.body || '').replace(/\n/g, ' ');
@@ -113,7 +79,6 @@
     return '<ul id="updates-list">' + items + '</ul>';
   }
 
-  /* Public API */
   window.renderBlog = function (targetId, opts) {
     const el = document.getElementById(targetId);
     if (!el) return;

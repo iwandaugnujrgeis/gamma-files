@@ -1,22 +1,9 @@
-/* ============================================================
-   downloads.js — Live download counter
-   Fetches total downloads from Modrinth and CurseForge APIs.
-   Updates the element with id="download-count" every 10 minutes.
-
-   NOTES:
-   - Modrinth has an open public API — no key required.
-   - CurseForge requires an API key (CFCore). The key below is a
-     placeholder; replace it with a real key from
-     https://console.curseforge.com/
-     If no key is available, CurseForge count is omitted gracefully.
-   ============================================================ */
-
 (function () {
   const MODRINTH_PROJECT_ID = 'gamma-files-lite';
   const CURSEFORGE_PROJECT_ID = '1079517';
   const CURSEFORGE_API_KEY = '$$2a$10$WKM6TppP238C16FE9npIpeIyJhgPZfGIqDvFj/m93eoIskbBAiFAS';
 
-  const INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+  const INTERVAL_MS = 10 * 60 * 1000;
 
   async function fetchModrinth() {
     try {
@@ -33,7 +20,7 @@
   }
 
   async function fetchCurseForge() {
-    if (CURSEFORGE_API_KEY.includes('PLACEHOLDER')) return null; // Skip if no real key
+    if (CURSEFORGE_API_KEY.includes('PLACEHOLDER')) return null;
     try {
       const res = await fetch(`https://api.curseforge.com/v1/mods/${CURSEFORGE_PROJECT_ID}`, {
         headers: {
@@ -83,17 +70,11 @@
     } else if (parts.length === 1) {
       el.textContent = formatNumber(total);
     } else {
-      // Both sources available — show combined total, tooltip with breakdown
       el.textContent = formatNumber(total);
       el.title = parts.join(' + ');
     }
   }
 
-  /* ----------------------------------------------------------
-     Discord member / online count
-     Uses the public invite endpoint — no auth, no CORS issues.
-     Returns { members, online } or null on failure.
-     ---------------------------------------------------------- */
   const DISCORD_INVITE = 'xgf7VWUczW';
 
   async function fetchDiscord() {
@@ -136,8 +117,6 @@
       elOnline.classList.remove('loading');
     }
   }
-
-  // Run immediately and then on interval
   document.addEventListener('DOMContentLoaded', function () {
     updateCounter();
     updateDiscord();

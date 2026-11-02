@@ -1,10 +1,3 @@
-/* ============================================================
-   nav.js — Shared header + footer injector
-   Call initNav(activePage) from each page.
-   activePage values: 'home', 'game', 'credits', 'community',
-                      'store', 'blog', 'help'
-   ============================================================ */
-
 (function () {
 
   function rootPath() {
@@ -14,10 +7,6 @@
     return './';
   }
 
-  /* Nav order as requested:
-     Home | Game | Blog | Community | Store | Credits | Help
-     Game has no dropdown — clicking takes you straight to game/index.html.
-     The sub-pages (page 1 / page 2) are navigated from the game page's own sidebar. */
   const NAV_ITEMS = [
     { id: 'home',      label: 'Home',      href: 'index.html',      children: [] },
     { id: 'game',      label: 'Game',      href: 'game/index.html', children: [] },
